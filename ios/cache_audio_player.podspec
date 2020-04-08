@@ -3,7 +3,7 @@
 # Run `pod lib lint audio_player.podspec' to validate before publishing.
 #
 Pod::Spec.new do |s|
-  s.name             = 'audio_player'
+  s.name             = 'cache_audio_player'
   s.version          = '0.0.1'
   s.summary          = 'A new Flutter plugin.'
   s.description      = <<-DESC

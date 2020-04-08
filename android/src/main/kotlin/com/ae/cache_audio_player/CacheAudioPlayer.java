@@ -1,4 +1,4 @@
-package com.ae.audio_player;
+package com.ae.cache_audio_player;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Handler;
@@ -21,7 +21,7 @@ import static com.google.android.exoplayer2.DefaultLoadControl.*;
 import io.flutter.Log;
 import io.flutter.plugin.common.MethodChannel.Result;
 
-public class AudioPlayer implements Player.EventListener {
+public class CacheAudioPlayer implements Player.EventListener {
     static int STATE_READYTOPLAY = 0;
     static int STATE_BUFFERING = 1;
     static int STATE_PLAYING = 2;
@@ -30,7 +30,7 @@ public class AudioPlayer implements Player.EventListener {
     static int STATE_FINISHED = 5;
 
     private SimpleExoPlayer exoPlayer;
-    private static AudioPlayer single_instance = null;
+    private static CacheAudioPlayer single_instance = null;
     private AudioPlayerListener listener;
     private final Handler bufferHandler = new Handler();
     private final Handler ellapsedTimeHandler = new Handler();
@@ -45,10 +45,10 @@ public class AudioPlayer implements Player.EventListener {
     }
 
     // static method to create instance of Singleton class
-    public static AudioPlayer getInstance()
+    public static CacheAudioPlayer getInstance()
     {
         if (single_instance == null)
-            single_instance = new AudioPlayer();
+            single_instance = new CacheAudioPlayer();
 
         return single_instance;
     }
@@ -85,7 +85,7 @@ public class AudioPlayer implements Player.EventListener {
         exoPlayer.setPlayWhenReady(false);
         exoPlayer.addListener(this);
         exoPlayer.prepare(audioSource);
-        if (listener != null)  { listener.onPlayerStateChanged(AudioPlayer.STATE_BUFFERING); }
+        if (listener != null)  { listener.onPlayerStateChanged(CacheAudioPlayer.STATE_BUFFERING); }
     }
 
     public void registerListener(AudioPlayerListener newListener) {
@@ -112,13 +112,13 @@ public class AudioPlayer implements Player.EventListener {
                 ellapsedTimeHandler.postDelayed(this, 500);
             }
         }, 500);
-        listener.onPlayerStateChanged(AudioPlayer.STATE_PLAYING);
+        listener.onPlayerStateChanged(CacheAudioPlayer.STATE_PLAYING);
     }
 
     public void stop() {
         exoPlayer.setPlayWhenReady(false);
         ellapsedTimeHandler.removeCallbacks(timeElapsedRunnable);
-        listener.onPlayerStateChanged(AudioPlayer.STATE_PAUSED);
+        listener.onPlayerStateChanged(CacheAudioPlayer.STATE_PAUSED);
     }
 
     public void seek(double time, Result result) {
@@ -146,10 +146,10 @@ public class AudioPlayer implements Player.EventListener {
             case Player.STATE_ENDED:
                 exoPlayer.setPlayWhenReady(false);
                 exoPlayer.seekTo(0);
-                listener.onPlayerStateChanged(AudioPlayer.STATE_FINISHED);
+                listener.onPlayerStateChanged(CacheAudioPlayer.STATE_FINISHED);
             case Player.STATE_READY:
                 if (exoPlayer.isPlaying()) { return; }
-                listener.onPlayerStateChanged(AudioPlayer.STATE_READYTOPLAY);
+                listener.onPlayerStateChanged(CacheAudioPlayer.STATE_READYTOPLAY);
                 break;
         }
     }
@@ -162,7 +162,7 @@ public class AudioPlayer implements Player.EventListener {
     @Override
     public void onPlayerError(ExoPlaybackException error) {
         if (listener == null)  { return; }
-        listener.onPlayerStateChanged(AudioPlayer.STATE_FAILED);
+        listener.onPlayerStateChanged(CacheAudioPlayer.STATE_FAILED);
         listener.onErroReceived(error.getMessage());
     }
 }

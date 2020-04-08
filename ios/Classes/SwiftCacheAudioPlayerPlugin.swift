@@ -38,7 +38,7 @@ public class SwiftCacheAudioPlayerPlugin: NSObject, FlutterPlugin {
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: "audio_player",
                                            binaryMessenger: registrar.messenger())
-        let instance = SwiftAudioPlayerPlugin()
+        let instance = SwiftCacheAudioPlayerPlugin()
         registrar.addMethodCallDelegate(instance, channel: channel)
         
         //Streaming

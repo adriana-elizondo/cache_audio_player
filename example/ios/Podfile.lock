@@ -1,0 +1,22 @@
+PODS:
+  - cache_audio_player (0.0.1):
+    - Flutter
+  - Flutter (1.0.0)
+
+DEPENDENCIES:
+  - cache_audio_player (from `.symlinks/plugins/cache_audio_player/ios`)
+  - Flutter (from `Flutter`)
+
+EXTERNAL SOURCES:
+  cache_audio_player:
+    :path: ".symlinks/plugins/cache_audio_player/ios"
+  Flutter:
+    :path: Flutter
+
+SPEC CHECKSUMS:
+  cache_audio_player: 24c7dbd480b7c612f2f229d6a5748ab4ffe7009f
+  Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
+
+PODFILE CHECKSUM: c34e2287a9ccaa606aeceab922830efb9a6ff69a
+
+COCOAPODS: 1.9.1

@@ -1,4 +1,4 @@
-package com.ae.audio_player;
+package com.ae.cache_audio_player;
 
 public interface AudioPlayerListener {
     void onErroReceived(String errorMessage);

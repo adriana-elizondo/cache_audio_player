@@ -1,4 +1,4 @@
-package com.ae.audio_player;
+package com.ae.cache_audio_player;
 import java.util.HashMap;
 import java.util.Map;
 import io.flutter.plugin.common.EventChannel;
@@ -21,10 +21,10 @@ import io.flutter.plugin.common.EventChannel;
 ///     value type : Double - while audio player is playing, current time in seconds.
 
 public class MediaDownloadStreamHandler implements EventChannel.StreamHandler, AudioPlayerListener {
-    private AudioPlayer audioPlayer;
+    private CacheAudioPlayer audioPlayer;
     private EventChannel.EventSink eventSink;
 
-    MediaDownloadStreamHandler(AudioPlayer player){
+    MediaDownloadStreamHandler(CacheAudioPlayer player){
         this.audioPlayer = player;
         audioPlayer.registerListener(this);
         registerIfActive();

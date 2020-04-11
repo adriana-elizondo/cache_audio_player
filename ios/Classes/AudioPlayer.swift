@@ -206,6 +206,7 @@ class AudioPlayer: NSObject {
     }
     
     func sliderValue(value: Double, result: @escaping FlutterResult) {
+        guard value > 0 && value < 1 else { result(false); return }
         guard let playerItem = playerItem, wasAllDataLoaded else {
             result(FlutterError(code: "", message: "Can only seek after buffering is finished", details: nil))
             return

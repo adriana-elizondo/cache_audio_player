@@ -19,6 +19,8 @@ import com.google.android.exoplayer2.trackselection.TrackSelector;
 import com.google.android.exoplayer2.upstream.BandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import static com.google.android.exoplayer2.DefaultLoadControl.*;
+
+import io.flutter.plugin.common.FlutterException;
 import io.flutter.plugin.common.MethodChannel.Result;
 
 public class CacheAudioPlayer implements Player.EventListener {
@@ -136,6 +138,10 @@ public class CacheAudioPlayer implements Player.EventListener {
     }
 
     public void seek(double time, Result result) {
+        if (time < 0 || time > 1) {
+            result.success(false);
+            return;
+        }
         double newValue = time * exoPlayer.getDuration();
         boolean shouldPlayAfterSeeking = exoPlayer.isPlaying();
         stop();

@@ -72,6 +72,7 @@ class _MyAppState extends State<MyApp> {
     _bufferSubscription.cancel();
     _errorSubscription.cancel();
     _timeElapsedSubscription.cancel();
+    _audioPlayer.stop();
     _audioPlayer.unregisterListeners();
   }
 

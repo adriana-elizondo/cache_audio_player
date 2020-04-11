@@ -105,7 +105,7 @@ class AudioPlayer: NSObject {
     deinit {
         session?.invalidateAndCancel()
         NotificationCenter.default.removeObserver(self)
-        removeObserver(self, forKeyPath: #keyPath(AVPlayerItem.status))
+        playerItem?.removeObserver(self, forKeyPath: #keyPath(AVPlayerItem.status))
     }
     
     override init() {
@@ -115,7 +115,6 @@ class AudioPlayer: NSObject {
     
     func setup(with url: URL, result: @escaping FlutterResult) {
         self.url = url
-        
         guard let customSchemeUrl = url.urlWithCustomScheme(customScheme: scheme) else {
             result(FlutterError(code: "", message: "Malformed url", details: nil))
             listener?.stateWasUpdated(newState: .failed)
@@ -169,7 +168,16 @@ class AudioPlayer: NSObject {
     }
     
     func unregisterListeners() {
+        NotificationCenter.default.removeObserver(self)
+        playerItem?.removeObserver(self, forKeyPath: #keyPath(AVPlayerItem.status))
+        removePeriodicTimeObserver()
+        session?.finishTasksAndInvalidate()
+        _ = loadingRequests.map { $0.value.finishLoading()}
+        loadingRequests.removeAll()
         self.listener = nil
+        downloadedData = Data()
+        wasAllDataLoaded = false
+        loadFromCache = false
     }
     
     func play() {
@@ -301,6 +309,8 @@ extension AudioPlayer: AVAssetResourceLoaderDelegate, URLSessionDelegate, URLSes
         if let data = cache.value(forKey: url!.absoluteString) {
             downloadedData = data
             loadFromCache = true
+            wasAllDataLoaded = true
+            listener?.bufferWasUpdated(newValue: 100.0)
             processLoadingRequestsFromCache(with: data)
         } else if session == nil {
             loadMedia()
@@ -341,5 +351,26 @@ extension AudioPlayer: AVAssetResourceLoaderDelegate, URLSessionDelegate, URLSes
         if !(player?.isPlaying ?? false) {
             listener?.stateWasUpdated(newState: .readyToPlay)
         }
+    }
+    
+    func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+        let authMethod = challenge.protectionSpace.authenticationMethod
+
+        guard challenge.previousFailureCount < 1, authMethod == NSURLAuthenticationMethodServerTrust,
+            let trust = challenge.protectionSpace.serverTrust else {
+            completionHandler(.performDefaultHandling, nil)
+            return
+        }
+
+        completionHandler(.useCredential, URLCredential(trust: trust))
+    }
+    
+    func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
+        if let urlString = request.url?.absoluteString.replacingOccurrences(of: "http://", with: "https://"),
+            let secureUrl = URL(string: urlString) {
+            completionHandler(URLRequest(url: secureUrl))
+            return
+        }
+        completionHandler(request)
     }
 }

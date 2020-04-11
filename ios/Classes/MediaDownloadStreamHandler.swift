@@ -30,15 +30,11 @@ class MediaDownloadStreamHandler: NSObject, FlutterStreamHandler, AudioPlayerLis
     private var sink: FlutterEventSink?
     private var audioPlayer = AudioPlayer.sharedInstance
     
-    override init() {
-        super.init()
-        print("registering event listeners..")
-        audioPlayer.registerListener(listener: self)
-    }
-    
     func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
         print("started listening...")
         sink = events
+        print("registering event listeners..")
+        audioPlayer.registerListener(listener: self)
         return nil
     }
     
@@ -50,7 +46,6 @@ class MediaDownloadStreamHandler: NSObject, FlutterStreamHandler, AudioPlayerLis
     private func removeEventSink() {
         guard sink != nil else { return }
         audioPlayer.stop()
-        audioPlayer.unregisterListeners()
     }
     
     // MARK: - Audio Player listener

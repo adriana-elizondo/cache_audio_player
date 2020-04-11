@@ -2,6 +2,8 @@ package com.ae.cache_audio_player;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Handler;
+import android.util.Log;
+
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.LoadControl;
@@ -17,8 +19,6 @@ import com.google.android.exoplayer2.trackselection.TrackSelector;
 import com.google.android.exoplayer2.upstream.BandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import static com.google.android.exoplayer2.DefaultLoadControl.*;
-
-import io.flutter.Log;
 import io.flutter.plugin.common.MethodChannel.Result;
 
 public class CacheAudioPlayer implements Player.EventListener {
@@ -32,8 +32,9 @@ public class CacheAudioPlayer implements Player.EventListener {
     private SimpleExoPlayer exoPlayer;
     private static CacheAudioPlayer single_instance = null;
     private AudioPlayerListener listener;
-    private final Handler bufferHandler = new Handler();
-    private final Handler ellapsedTimeHandler = new Handler();
+    private Handler bufferHandler = new Handler();
+    private Handler ellapsedTimeHandler = new Handler();
+    private CacheDataSourceFactory cache;
 
     @Override
     protected void finalize() throws Throwable {
@@ -56,6 +57,7 @@ public class CacheAudioPlayer implements Player.EventListener {
     final Runnable timeElapsedRunnable = new Runnable() {
         @Override
         public void run() {
+            if (exoPlayer == null || listener == null) {return;}
             listener.onTimeElapsed( exoPlayer.getCurrentPosition() / 1000);
         }
     };
@@ -63,7 +65,7 @@ public class CacheAudioPlayer implements Player.EventListener {
     final Runnable bufferRunnable = new Runnable() {
         @Override
         public void run() {
-            if (exoPlayer == null) {return;}
+            if (exoPlayer == null || listener == null) {return;}
             listener.onBufferUpdated(exoPlayer.getBufferedPercentage());
         }
     };
@@ -79,8 +81,9 @@ public class CacheAudioPlayer implements Player.EventListener {
                 DEFAULT_BUFFER_FOR_PLAYBACK_MS,
                 DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS).createDefaultLoadControl();
         exoPlayer = ExoPlayerFactory.newSimpleInstance(context, trackSelector, loadControl);
+        cache = new CacheDataSourceFactory(context);
         MediaSource audioSource = new ExtractorMediaSource(Uri.parse(url),
-                new CacheDataSourceFactory(context, 100 * 1024 * 1024, 5 * 1024 * 1024),
+                cache,
                 new DefaultExtractorsFactory(), null, null);
         exoPlayer.setPlayWhenReady(false);
         exoPlayer.addListener(this);
@@ -93,6 +96,7 @@ public class CacheAudioPlayer implements Player.EventListener {
         bufferHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
+                if (listener == null) {return;}
                 bufferRunnable.run();
                 bufferHandler.postDelayed(this, 1000);
             }
@@ -100,7 +104,16 @@ public class CacheAudioPlayer implements Player.EventListener {
     }
 
     public void unregisterListeners() {
+        resetValues();
+    }
+
+    private void resetValues() {
+        bufferHandler.removeCallbacks(bufferRunnable);
+        ellapsedTimeHandler.removeCallbacks(timeElapsedRunnable);
+        bufferHandler = new Handler();
+        ellapsedTimeHandler = new Handler();
         listener = null;
+        cache.releaseCache();
     }
 
     public void play() {
@@ -108,6 +121,7 @@ public class CacheAudioPlayer implements Player.EventListener {
         ellapsedTimeHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
+                if (listener == null) {return;}
                 timeElapsedRunnable.run();
                 ellapsedTimeHandler.postDelayed(this, 500);
             }

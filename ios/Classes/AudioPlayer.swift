@@ -171,7 +171,9 @@ class AudioPlayer: NSObject {
         NotificationCenter.default.removeObserver(self)
         playerItem?.removeObserver(self, forKeyPath: #keyPath(AVPlayerItem.status))
         removePeriodicTimeObserver()
-        session?.finishTasksAndInvalidate()
+        session?.invalidateAndCancel()
+        session?.dataTask(with: url!).cancel()
+        session = nil
         _ = loadingRequests.map { $0.value.finishLoading()}
         loadingRequests.removeAll()
         self.listener = nil
@@ -193,8 +195,6 @@ class AudioPlayer: NSObject {
     func stop() {
         player?.pause()
         listener?.stateWasUpdated(newState: .paused)
-        session?.finishTasksAndInvalidate()
-        session = nil
     }
     
     func currentItemLengthInSeconds(result: @escaping FlutterResult) {
@@ -353,6 +353,7 @@ extension AudioPlayer: AVAssetResourceLoaderDelegate, URLSessionDelegate, URLSes
             listener?.stateWasUpdated(newState: .readyToPlay)
         }
     }
+    
     
     func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
         let authMethod = challenge.protectionSpace.authenticationMethod

@@ -1,6 +1,7 @@
 name: cache_audio_player
-description: A new flutter plugin project.
-version: 0.0.1
+description: A flutter plugin to play and **cache** audio files. Works for iOS and Android.
+  The plugin uses 2 channels, one to communicate events from flutter to native, and an event channel to stream the state changes of the native players back to flutter.
+version: 1.0.0
 homepage: https://github.com/adriana-elizondo/cache_audio_player
 
 environment:
